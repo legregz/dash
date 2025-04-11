@@ -1,7 +1,7 @@
 // #include <SDL2/SDL.h>
 
-#include "../inc/utils.h"
-#include "../inc/wall.h"
+#include "../inc/utils.hpp"
+#include "../inc/wall.hpp"
 
 Wall::Wall(int x, int y, int w, int h) : x(x), y(y), w(w), h(h) {}
 

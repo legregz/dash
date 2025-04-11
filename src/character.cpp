@@ -6,7 +6,7 @@
 // #include "../inc/wall.h"
 #include "../inc/utils.hpp"
 #include <SDL2/SDL_stdinc.h>
-#include <iostream>
+
 
 Character::Character(End *start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) { setup(*start, GAP, RATIO, font, renderer); }
 
