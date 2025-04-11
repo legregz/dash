@@ -1,22 +1,24 @@
 // #include <SDL2/SDL_ttf.h>
 // #include <SDL2/SDL.h>
 
-#include "../inc/character.h"
+#include "../inc/character.hpp"
 // #include "../inc/ends.h"
-// #include "../inc/block.h"
-#include "../inc/utils.h"
+// #include "../inc/wall.h"
+#include "../inc/utils.hpp"
 #include <SDL2/SDL_stdinc.h>
+#include <iostream>
 
 Character::Character(End *start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) { setup(*start, GAP, RATIO, font, renderer); }
 
-void Character::render(int nbBlocks, Block *blocks, int nbBoosts, Boost *boosts) {
+void Character::render(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
 	for (int i = 9; i > 0; i--)
 		rect[i] = rect[i - 1];
 
-	move(nbBlocks, blocks, nbBoosts, boosts);
+	move(nbWalls, walls, nbBoosts, boosts);
 
-	if (speedY > 0)
-		speedY -= 1;
+	// if (speed.y > 0)
+	// 	speed.y -= 1;
+	//
 
 	for (int i = 9; i > -1; i--)
 	{
@@ -26,54 +28,57 @@ void Character::render(int nbBlocks, Block *blocks, int nbBoosts, Boost *boosts)
 	}
 }
 
-void Character::move(int nbBlocks, Block *blocks, int nbBoosts, Boost *boosts) {
+void Character::move(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
 	calculateNextRect();
 	int i = 0;
 	collideX = 0;
+	if (collideY == 1) {
+		moveStartTime = SDL_GetTicks64();
+	}
 	collideY = 0;
 	color = {255, 255, 255, 255};
 
-	for (i = 0; i < nbBlocks; i++) {
-		SDL_Rect blockRect = blocks[i].rect;
+	for (i = 0; i < nbWalls; i++) {
+		SDL_Rect wallRect = walls[i].rect;
 
-		if (SDL_HasIntersection(&blockRect, &nextRect)) {
-			if (x > blockRect.x + blockRect.w) {
-				x = blockRect.x + blockRect.w + w / 2 - 1;
-				speedX = 0;
+		if (SDL_HasIntersection(&wallRect, &nextRect)) {
+			if (pos.x > wallRect.x + wallRect.w) {
+				pos.x = wallRect.x + wallRect.w + w / 2 - 1;
+				speed.x = 0;
 			}
 
-			if (x < blockRect.x) {
-				x = blockRect.x - w / 2 + 1;
-				speedX = 0;
+			if (pos.x < wallRect.x) {
+				pos.x = wallRect.x - w / 2 + 1;
+				speed.x = 0;
 			}
 
-			if (y > blockRect.y + blockRect.h) {
-				y = blockRect.y + blockRect.h + h / 2 - 1;
-				if (speedX > 0)
-					speedX -= 1;
+			if (pos.y > wallRect.y + wallRect.h) {
+				pos.y = wallRect.y + wallRect.h + h / 2 - 1;
+				if (speed.x > 0)
+					speed.x -= 1;
 			}
 
-			if (y < blockRect.y) {
-				y = blockRect.y - h / 2 + 1;
-				speedY = 0;
-				if (speedX > 0)
-					speedX -= 1;
+			if (pos.y < wallRect.y) {
+				pos.y = wallRect.y - h / 2 + 1;
+				speed.y = 0;
+				if (speed.x > 0)
+					speed.x -= 1;
 			}
 
-			rect[0] = {x - w / 2, y - h / 2, w, h};
+			rect[0] = {pos.x - w / 2, pos.y - h / 2, w, h};
 		}
 
-		if (SDL_HasIntersection(&blockRect, &rect[0])) {
-			if (x > blockRect.x + blockRect.w)
+		if (SDL_HasIntersection(&wallRect, &rect[0])) {
+			if (pos.x > wallRect.x + wallRect.w)
 				collideX = -1;
 
-			if (x < blockRect.x)
+			if (pos.x < wallRect.x)
 				collideX = 1;
 
-			if (y > blockRect.y + blockRect.h)
+			if (pos.y > wallRect.y + wallRect.h)
 				collideY = -1;
 
-			if (y < blockRect.y) {
+			if (pos.y < wallRect.y) {
 				collideY = 1;
 				dashsRemaining = 2;
 			}
@@ -87,35 +92,39 @@ void Character::move(int nbBlocks, Block *blocks, int nbBoosts, Boost *boosts) {
 	// if (collideY)
 	// 	color = {255, 255, 0, 255};
 
-	if (((collideY == -1 && y - nextY < 0) || (collideY == 1 && y - nextY > 0) || collideY == 0) && (!grab || collideX == 0))
-		y = nextY;
+	if (((collideY == -1 && pos.y - nextY < 0) || (collideY == 1 && pos.y - nextY > 0) || collideY == 0) && (!grab || collideX == 0))
+		pos.y = nextY;
 
-	if ((collideX == -1 && x - nextX < 0) || (collideX == 1 && x - nextX > 0) || collideX == 0)
-		x = nextX;
+	if ((collideX == -1 && pos.x - nextX < 0) || (collideX == 1 && pos.x - nextX > 0) || collideX == 0)
+		pos.x = nextX;
 
-	rect[0] = {x - w / 2, y - h / 2, w, h};
+	rect[0] = {pos.x - w / 2, pos.y - h / 2, w, h};
 }
 
 void Character::calculateNextRect() {
-	nextX = x + cos(angle) * speedX * RATIO + 10 * walk;
-	nextY = y + sin(angle) * speedY * RATIO + std::max(0, (int)RATIO * (10 - speedY));
+	// nextX = pos.x + cos(angle) * speed.x * RATIO + 10 * walk;
+	// nextY = pos.y + sin(angle) * speed.y * RATIO + std::max(0, (int)RATIO * (20 - speed.y));
+	double t;
+	!(collideY == 1) ? t = (double)(SDL_GetTicks64() - moveStartTime) / 1000 : t = 0;
+	nextX = speed.x * (t + 1) + pos.x + (collideY == 1 ? walk * 10 : 0);
+	nextY = 0.5 * gravityVector.y / 1000 * pow(t, 2) + speed.y * (t + 1) + pos.y;
+	// std::cout << "nextX : " << nextX << " nextY : " << nextY << " pos.x : " << pos.x << " pos.y : " << pos.y << " t : " << t << " collideX : " << collideX << " collideY : " << collideY << std::endl;
 	nextRect = {nextX - w / 2, nextY - h / 2, w, h};
 }
 
-void Character::dash(int x, int y) {
-	if (SDL_GetTicks64() > (Uint64)dashDelay + 200 && dashsRemaining != 0) {
-		dashDelay = SDL_GetTicks64();
-		speedX = 10;
-		speedY = 15;
-		angle = atan2(y, x);
+void Character::dash(Vector direction) {
+	// if (SDL_GetTicks64() > (Uint64)moveStartTime + 200 && dashsRemaining != 0) {
+		moveStartTime = SDL_GetTicks64();
+		speed.x = 4 * direction.x;
+		speed.y = 4 * direction.y;
 		dashsRemaining -= 1;
 		grab = 0;
-	}
+	// }
 }
 
 void Character::setup(End start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) {
-	x = start.x, y = start.y;
-	convert_SDL_Rect(&x, &y, &w, &h, GAP, RATIO);
+	pos.x = start.x, pos.y = start.y;
+	convert_SDL_Rect(&pos.x, &pos.y - GAP[1], &w, &h, GAP, RATIO);
 	this->RATIO = RATIO;
 	this->font = font;
 	this->renderer = renderer;

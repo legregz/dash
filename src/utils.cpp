@@ -1,4 +1,4 @@
-#include "../inc/utils.h"
+#include "../inc/utils.hpp"
 
 void convert_SDL_Rect(int *x, int *y, int *w, int *h, int GAP[2], double RATIO) {
 	*x *= RATIO;

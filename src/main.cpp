@@ -1,7 +1,8 @@
 //#include <SDL2/SDL.h>
 
-#include "../inc/character.h"
-#include "../inc/SDL_utils.h"
+#include "../inc/character.hpp"
+#include "../inc/SDL_utils.hpp"
+#include <iostream>
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +21,8 @@ int main(int argc, char *argv[])
 		return SDL_status;
 	}
 
-	int width = 0, height = 0, GAP[2] = {0, 0}, d = 0, x = 0, y = 0;
+	int width = 0, height = 0, GAP[2] = {0, 0}, keyD = 0;
+	Vector direction = {0, 0};
 	double ratio = 0.0, RATIO = 0.0;
 
 	SDL_GetWindowSize(window, &width, &height);
@@ -35,9 +37,9 @@ int main(int argc, char *argv[])
 		GAP[1] = (height - RATIO * 1080) / 2;
 	}
 
-	int nbBlocks = 5, nb_boosts = 1;
+	int nbWalls = 5, nb_boosts = 1;
 
-	Block blocks[] = {
+	Wall walls[] = {
 		{0, 0, 1920, 100},
 		{0, 0, 100, 1080},
 		{1820, 0, 100, 1080},
@@ -45,16 +47,18 @@ int main(int argc, char *argv[])
 		{200, 500, 500, 100},
 	};
 
-	Block_setup(nbBlocks, blocks, GAP, RATIO);
+	Wall_setup(nbWalls, walls, GAP, RATIO);
 
 	Boost boosts[] = {
 		{800, 400}
 	};
 
-	End start = {200, 200};
+	End start = {150, 200};
 	End end = {1700, 200};
 
 	End_setup(&start, &end, GAP, RATIO);
+
+	std::cout<< start.x << start.y << std::endl;
 
 	// initialisation of character
 	Character character(&start, GAP, RATIO, font, renderer);
@@ -92,25 +96,23 @@ int main(int argc, char *argv[])
 				if (key == SDLK_z)
 					character.grab = 1;
 
-				if (key == SDLK_d && d == 0)
-					d = 1;
+				if (key == SDLK_d && keyD == 0)
+					keyD = 1;
 
 				if (key == SDLK_UP)
-					y = -1;
+					direction.y = -1;
 
 				if (key == SDLK_DOWN)
-					y = 1;
+					direction.y = 1;
 
 				if (key == SDLK_LEFT) {
-					x = -1;
-					if (character.collideY == 1)
-						character.walk = -1;
+					direction.x = -1;
+					character.walk = -1;
 				}
 
 				if (key == SDLK_RIGHT) {
-					x = 1;
-					if (character.collideY == 1)
-						character.walk = 1;
+					direction.x = 1;
+					character.walk = 1;
 				}
 			}
 			if (event.type == SDL_KEYUP) {
@@ -120,37 +122,37 @@ int main(int argc, char *argv[])
 					character.grab = 0;
 
 				if (key == SDLK_d)
-					d = 0;
+					keyD = 0;
 
 				if (key == SDLK_UP || key == SDLK_DOWN)
-					y = 0;
+					direction.y = 0;
 
-				if ((key == SDLK_LEFT && x == -1) || (key == SDLK_RIGHT && x == 1))
+				if ((key == SDLK_LEFT && direction.x == -1) || (key == SDLK_RIGHT && direction.x == 1))
 				{
-					x = 0;
+					direction.x = 0;
 					character.walk = 0;
 				}
 			}
 		}
 
-		if (d == 1 && (x != 0 || y != 0)) {
-			character.dash(x, y);
-			d = 2;
+		if (keyD == 1 && (direction.x != 0 || direction.y != 0)) {
+			character.dash(direction);
+			keyD = 2;
 		}
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		for (int i = 0; i < nbBlocks; i++)
-			blocks[i].render(renderer);
+		for (int i = 0; i < nbWalls; i++)
+			walls[i].render(renderer);
 
-		// for (int i = 0; i < nbBlocks; i++)
+		// for (int i = 0; i < nbWalls; i++)
 		// 	boosts[i].render(renderer);
 
 		start.render(renderer);
 		end.render(renderer);
 
-		character.render(nbBlocks, blocks, nb_boosts, boosts);
+		character.render(nbWalls, walls, nb_boosts, boosts);
 
 		// if (SDL_GetTicks64() > fpsRefresh)
 		// {

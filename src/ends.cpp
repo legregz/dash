@@ -1,7 +1,7 @@
 // #include <SDL2/SDL.h>
 
-#include "../inc/utils.h"
-#include "../inc/ends.h"
+#include "../inc/utils.hpp"
+#include "../inc/ends.hpp"
 
 End::End(int x, int y) : x(x), y(y) {}
 
