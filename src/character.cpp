@@ -6,7 +6,9 @@
 // #include "../inc/wall.h"
 #include "../inc/utils.hpp"
 #include <SDL2/SDL_stdinc.h>
-
+#include <SDL2/SDL_timer.h>
+#include <cstddef>
+#include <iostream>
 
 Character::Character(End *start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) { setup(*start, GAP, RATIO, font, renderer); }
 
@@ -29,102 +31,161 @@ void Character::render(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
 }
 
 void Character::move(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
+	if (collide.y == 1 && !speed.y) {
+		moveStartTime = SDL_GetTicks64();
+		moveStartPosition = pos;
+	}
 	calculateNextRect();
 	int i = 0;
-	collideX = 0;
-	if (collideY == 1) {
-		moveStartTime = SDL_GetTicks64();
+	collide = {0, 0};
+	Vector relativeWallPosition, direction = {0, 0};
+
+	if (pos.x < nextPos.x) {
+		direction.x = 1;
+	} else if (pos.x > nextPos.x) {
+		direction.x = -1;
 	}
-	collideY = 0;
-	color = {255, 255, 255, 255};
+
+	if (pos.y < nextPos.y) {
+		direction.y = 1;
+	} else if (pos.y > nextPos.y) {
+		direction.y = -1;
+	}
+
+	// std::cout << direction.x << direction.y << std::endl;
 
 	for (i = 0; i < nbWalls; i++) {
 		SDL_Rect wallRect = walls[i].rect;
+		relativeWallPosition = {0, 0};
+
+		if (pos.x < wallRect.x) {
+			relativeWallPosition.x = 1;
+		} else if (pos.x > wallRect.x + wallRect.w) {
+			relativeWallPosition.x = -1;
+		}
+
+		if (pos.y < wallRect.y) {
+			relativeWallPosition.y = 1;
+		} else if (pos.y > wallRect.y + wallRect.h) {
+			relativeWallPosition.y = -1;
+		}
 
 		if (SDL_HasIntersection(&wallRect, &nextRect)) {
-			if (pos.x > wallRect.x + wallRect.w) {
-				pos.x = wallRect.x + wallRect.w + w / 2 - 1;
-				speed.x = 0;
+			if (relativeWallPosition.x == 1) {
+				if (direction.x == 1) {
+					pos.x = wallRect.x - w / 2 + 1;
+					speed.x = 0;
+					speed.y = 0;
+					moveStartTime = SDL_GetTicks64();
+					moveStartPosition = pos;
+				}
+				collide.x = 1;
+			} else if (relativeWallPosition.x == -1) {
+				if (direction.x == -1) {
+					pos.x = wallRect.x + wallRect.w + w / 2 - 1;
+					speed.x = 0;
+					speed.y = 0;
+					moveStartTime = SDL_GetTicks64();
+					moveStartPosition = pos;
+				}
+				collide.x = -1;
 			}
 
-			if (pos.x < wallRect.x) {
-				pos.x = wallRect.x - w / 2 + 1;
-				speed.x = 0;
+			if (collide.x && grab) {
+				moveStartTime = SDL_GetTicks64();
+				moveStartPosition = pos;
 			}
 
-			if (pos.y > wallRect.y + wallRect.h) {
-				pos.y = wallRect.y + wallRect.h + h / 2 - 1;
-				if (speed.x > 0)
-					speed.x -= 1;
+			if (relativeWallPosition.y == 1) {
+				if (direction.y == 1) {
+					pos.y = wallRect.y - h / 2 + 1;
+					speed.y = 0;
+				}
+				collide.y = 1;
+				// if (speed.x > 0)
+				// 	speed.x -= 1;
+			} else if (relativeWallPosition.y == -1) {
+				if (direction.y == -1) {
+					pos.y = wallRect.y + wallRect.h + h / 2 - 1;
+					speed.y = 0;
+					moveStartTime = SDL_GetTicks64();
+					moveStartPosition = pos;
+				}
+				collide.y = -1;
+				// if (speed.x > 0)
+				// 	speed.x -= 1;
 			}
 
-			if (pos.y < wallRect.y) {
-				pos.y = wallRect.y - h / 2 + 1;
-				speed.y = 0;
-				if (speed.x > 0)
-					speed.x -= 1;
-			}
+			// if (grab) {
+			// 	moveStartTime = SDL_GetTicks64();
+			// 	moveStartPosition = pos;
+			// }
 
-			rect[0] = {pos.x - w / 2, pos.y - h / 2, w, h};
+			// rect[0] = {pos.x - w / 2, pos.y - h / 2, w, h};
 		}
 
-		if (SDL_HasIntersection(&wallRect, &rect[0])) {
-			if (pos.x > wallRect.x + wallRect.w)
-				collideX = -1;
+		// if (SDL_HasIntersection(&wallRect, &rect[0])) {
+		// 	if (pos.x > wallRect.x + wallRect.w)
+		// 		collide.x = -1;
 
-			if (pos.x < wallRect.x)
-				collideX = 1;
+		// 	if (pos.x < wallRect.x)
+		// 		collide.x = 1;
 
-			if (pos.y > wallRect.y + wallRect.h)
-				collideY = -1;
+		// 	if (pos.y > wallRect.y + wallRect.h)
+		// 		collide.y = -1;
 
-			if (pos.y < wallRect.y) {
-				collideY = 1;
-				dashsRemaining = 2;
-			}
-			if (grab)
-				dashsRemaining = 2;
-		}
+		// 	if (pos.y < wallRect.y) {
+		// 		collide.y = 1;
+		// 		dashsRemaining = 2;
+		// 	}
+		// 	if (grab)
+		// 		dashsRemaining = 2;
+		// }
 	}
 
-	// if (collideX)
+	// if (collide.x)
 	// 	color = {255, 0, 0, 255};
-	// if (collideY)
+	// if (collide.y)
 	// 	color = {255, 255, 0, 255};
 
-	if (((collideY == -1 && pos.y - nextY < 0) || (collideY == 1 && pos.y - nextY > 0) || collideY == 0) && (!grab || collideX == 0))
-		pos.y = nextY;
+	if (((collide.y == -1 && direction.y == 1) || (collide.y == 1 && direction.y == -1) || collide.y == 0) && (!grab || collide.x == 0))
+		pos.y = nextPos.y;
 
-	if ((collideX == -1 && pos.x - nextX < 0) || (collideX == 1 && pos.x - nextX > 0) || collideX == 0)
-		pos.x = nextX;
+	if ((collide.x == -1 && direction.x == 1) || (collide.x == 1 && direction.x == -1) || collide.x == 0)
+		pos.x = nextPos.x;
 
 	rect[0] = {pos.x - w / 2, pos.y - h / 2, w, h};
 }
 
 void Character::calculateNextRect() {
-	// nextX = pos.x + cos(angle) * speed.x * RATIO + 10 * walk;
-	// nextY = pos.y + sin(angle) * speed.y * RATIO + std::max(0, (int)RATIO * (20 - speed.y));
-	double t;
-	!(collideY == 1) ? t = (double)(SDL_GetTicks64() - moveStartTime) / 1000 : t = 0;
-	nextX = speed.x * (t + 1) + pos.x + (collideY == 1 ? walk * 10 : 0);
-	nextY = 0.5 * gravityVector.y / 1000 * pow(t, 2) + speed.y * (t + 1) + pos.y;
-	// std::cout << "nextX : " << nextX << " nextY : " << nextY << " pos.x : " << pos.x << " pos.y : " << pos.y << " t : " << t << " collideX : " << collideX << " collideY : " << collideY << std::endl;
-	nextRect = {nextX - w / 2, nextY - h / 2, w, h};
+	// nextPos.y = pos.x + cos(angle) * speed.x * RATIO + 10 * walk;
+	// nextPos.y = pos.y + sin(angle) * speed.y * RATIO + std::max(0, (int)RATIO * (20 - speed.y));
+	// std::cout << collide.y << std::endl;
+	// if (walk != 0 || collide.y != 1) {
+		double t = (SDL_GetTicks64() - moveStartTime) / 100.0;
+		nextPos.x = speed.x * t + moveStartPosition.x + (collide.y == 1 ? walk * 10 * RATIO : 0);
+		nextPos.y = 0.5 * gravityVector.y / 500 * pow(t, 2) * RATIO + speed.y * t + moveStartPosition.y;
+		// std::cout << "pos.y : " << pos.y << " nextPos.y : " << nextPos.y << " | pos.x : " << pos.x << " nextPos.x : " << nextPos.x << " | t : " << t << " collide.x : " << collide.x << " collide.y : " << collide.y << std::endl;
+		nextRect = {nextPos.x - w / 2, nextPos.y - h / 2, w, h};
+	// }
 }
 
 void Character::dash(Vector direction) {
 	// if (SDL_GetTicks64() > (Uint64)moveStartTime + 200 && dashsRemaining != 0) {
 		moveStartTime = SDL_GetTicks64();
-		speed.x = 4 * direction.x;
-		speed.y = 4 * direction.y;
+		moveStartPosition = pos;
+		speed.x = 50 * direction.x * RATIO;
+		speed.y = 50 * direction.y * RATIO;
 		dashsRemaining -= 1;
 		grab = 0;
+		// std::cout << "dash" << std::endl;
 	// }
 }
 
 void Character::setup(End start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) {
 	pos.x = start.x, pos.y = start.y;
-	convert_SDL_Rect(&pos.x, &pos.y - GAP[1], &w, &h, GAP, RATIO);
+	convert_SDL_Rect(&pos.x, &pos.y, &w, &h, GAP, RATIO);
+	moveStartPosition = {pos.x, pos.y};
 	this->RATIO = RATIO;
 	this->font = font;
 	this->renderer = renderer;

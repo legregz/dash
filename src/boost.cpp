@@ -1,7 +1,7 @@
 // #include <SDL2/SDL.h>
 
-#include "../inc/utils.h"
-#include "../inc/boost.h"
+#include "../inc/utils.hpp"
+#include "../inc/boost.hpp"
 
 Boost::Boost(int x, int y) : x(x), y(y) {}
 

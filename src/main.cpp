@@ -56,12 +56,8 @@ int main(int argc, char *argv[])
 	End start = {150, 200};
 	End end = {1700, 200};
 
-	End_setup(&start, &end, GAP, RATIO);
-
-	std::cout<< start.x << start.y << std::endl;
-
-	// initialisation of character
 	Character character(&start, GAP, RATIO, font, renderer);
+	End_setup(&start, &end, GAP, RATIO);
 
 	// char text[1];
 
