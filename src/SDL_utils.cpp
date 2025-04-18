@@ -21,7 +21,7 @@ int init_SDL(SDL_Renderer **renderer, SDL_Window **window, TTF_Font **font) {
 		return 1;
 	}
 
-	*window = SDL_CreateWindow("Dash", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	*window = SDL_CreateWindow("Dash", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0);//SDL_WINDOW_FULLSCREEN_DESKTOP);
 	if (window == NULL) {
 		fprintf(stderr, "Erreur lors de la création de la fenêtre: %s\n", SDL_GetError());
 		return 1;

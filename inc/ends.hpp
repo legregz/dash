@@ -2,22 +2,18 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include "element.hpp"
 
-class End {
+class End : public Element {
 private:
-	int w = 40, h = 40, start;
-
-	SDL_Color color;
+	bool start;
 
 public:
-	int x, y;
-	SDL_Rect rect;
+	End(int x, int y, bool start);
 
-	End(int x, int y);
+	End();
 
-	void render(SDL_Renderer *renderer);
+	void render(SDL_Renderer* renderer) override;
 
-	void setup(int GAP[2], double RATIO, int start);
+	void scale(int GAP[2], double RATIO) override;
 };
-
-void End_setup(End *start, End *end, int GAP[2], double RATIO);

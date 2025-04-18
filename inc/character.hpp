@@ -2,11 +2,11 @@
 #pragma once
 
 #include <SDL2/SDL_ttf.h>
-
 #include "../inc/ends.hpp"
-#include "../inc/wall.hpp"
-#include "../inc/boost.hpp"
 #include "../inc/types.hpp"
+#include "../inc/frame.hpp"
+
+#define DASH_LIMIT 3;
 
 class Character {
 private:
@@ -14,7 +14,7 @@ private:
 	Position pos;
 	Position nextPos;
 	Vector speed = {0, 0};
-	int moveStartTime = SDL_GetTicks64(), dashsRemaining = 2;
+	int moveStartTime = SDL_GetTicks64(), dashsRemaining = DASH_LIMIT;
 	Position moveStartPosition;
 	int colorIntensity;
 	double RATIO;
@@ -26,14 +26,14 @@ private:
 	SDL_Renderer *renderer = nullptr;
 
 public:
-	Character(End *start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer);
+	Character(const End* start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer);
 
 	int grab = 0, walk = 0;
 	Position collide = {0, 0};
 
-	void render(int nb_walls, Wall *walls, int nbBoosts, Boost *boosts);
-	void move(int nb_walls, Wall *walls, int nbBoosts, Boost *boosts);
+	void render(Frame *frame);
+	void move(Frame *frame);
 	void calculateNextRect();
 	void dash(Vector direction);
-	void setup(End start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer);
+	void scale(const End* start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer);
 };

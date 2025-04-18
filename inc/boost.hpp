@@ -2,22 +2,13 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include "element.hpp"
 
-class Boost {
-private:
-	int w = 20, h = 20;
-
-	SDL_Color color;
-
+class Boost : public Element {
 public:
-	int x, y;
-	SDL_Rect rect;
-
 	Boost(int x, int y);
 
-	void render(SDL_Renderer *renderer);
+	void render(SDL_Renderer* renderer) override;
 
-	void setup(int GAP[2], double RATIO);
+	void scale(int GAP[2], double RATIO) override;
 };
-
-void Boost_setup(int nbBoosts, Boost boosts[], int GAP[2], double RATIO);

@@ -1,0 +1,39 @@
+#include "boost.hpp"
+#include "element.hpp"
+#include "ends.hpp"
+#include "wall.hpp"
+#include <SDL2/SDL_render.h>
+#include <vector>
+
+class Frame {
+private:
+	std::vector<Wall> walls;
+	std::vector<Boost> boosts;
+	std::vector<Element> others;
+	End start;
+	End end;
+
+public:
+	Frame();
+
+	Wall getWallAt(int index) const;
+	const std::vector<Wall>* getWalls() const;
+
+	Boost getBoostAt(int index) const;
+	// const std::vector<Boost>* getBoosts() const;
+
+	// const Element& getOtherAt(int index) const;
+	// int getNumberOfOthers() const;
+
+	const End* getStart() const;
+	const End* getEnd() const;
+
+	void addWall(Wall wall);
+	void addBoost(Boost boost);
+	// void addOthers(const Element& elt);
+	void setStart(End start);
+	void setEnd(End end);
+
+	void render(SDL_Renderer* renderer);
+	void scale(int gap[2], double ratio);
+};

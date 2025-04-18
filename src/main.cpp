@@ -2,13 +2,14 @@
 
 #include "../inc/character.hpp"
 #include "../inc/SDL_utils.hpp"
+#include <cstdio>
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
-	SDL_Window *window = nullptr;
-	SDL_Renderer *renderer = nullptr;
-	TTF_Font *font = nullptr;
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
+	TTF_Font* font = nullptr;
 	// SDL_Color color = {255, 0, 0, 255};
 	// SDL_Surface *fpsTextSurface = nullptr;
 	// SDL_Texture *fpsTextTextures[10];
@@ -37,27 +38,22 @@ int main(int argc, char *argv[])
 		GAP[1] = (height - RATIO * 1080) / 2;
 	}
 
-	int nbWalls = 5, nb_boosts = 1;
+	Frame frame;
 
-	Wall walls[] = {
-		{0, 0, 1920, 100},
-		{0, 0, 100, 1080},
-		{1820, 0, 100, 1080},
-		{0, 980, 1920, 100},
-		{200, 500, 500, 100},
-	};
+	frame.addWall({0, 0, 1920, 100});
+	frame.addWall({0, 0, 100, 1080});
+	frame.addWall({1820, 0, 100, 1080});
+	frame.addWall({0, 980, 1920, 100});
+	frame.addWall({200, 500, 500, 100});
 
-	Wall_setup(nbWalls, walls, GAP, RATIO);
+	frame.addBoost({800, 400});
 
-	Boost boosts[] = {
-		{800, 400}
-	};
+	frame.setStart({150, 200, 1});
+	frame.setEnd({1700, 200, 0});
 
-	End start = {150, 200};
-	End end = {1700, 200};
+	Character character = Character(frame.getStart(), GAP, RATIO, font, renderer);
 
-	Character character(&start, GAP, RATIO, font, renderer);
-	End_setup(&start, &end, GAP, RATIO);
+	frame.scale(GAP, RATIO);
 
 	// char text[1];
 
@@ -69,7 +65,6 @@ int main(int argc, char *argv[])
 	// }
 
 	// SDL_FreeSurface(fpsTextSurface);
-
 	SDL_Event event;
 	long startTime;
 	int running = 1;//, textWidth = 0, textHeight = 0, fps = 60, fpsRefresh = 0;
@@ -139,16 +134,9 @@ int main(int argc, char *argv[])
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		for (int i = 0; i < nbWalls; i++)
-			walls[i].render(renderer);
+		frame.render(renderer);
 
-		// for (int i = 0; i < nbWalls; i++)
-		// 	boosts[i].render(renderer);
-
-		start.render(renderer);
-		end.render(renderer);
-
-		character.render(nbWalls, walls, nb_boosts, boosts);
+		character.render(&frame);
 
 		// if (SDL_GetTicks64() > fpsRefresh)
 		// {

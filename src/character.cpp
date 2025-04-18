@@ -7,20 +7,17 @@
 #include "../inc/utils.hpp"
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_timer.h>
-#include <cstddef>
 #include <iostream>
+// #include <cstddef>
+// #include <iostream>
 
-Character::Character(End *start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) { setup(*start, GAP, RATIO, font, renderer); }
+Character::Character(const End* start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) { scale(start, GAP, RATIO, font, renderer); }
 
-void Character::render(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
+void Character::render(Frame *frame) {
 	for (int i = 9; i > 0; i--)
 		rect[i] = rect[i - 1];
 
-	move(nbWalls, walls, nbBoosts, boosts);
-
-	// if (speed.y > 0)
-	// 	speed.y -= 1;
-	//
+	move(frame);
 
 	for (int i = 9; i > -1; i--)
 	{
@@ -30,13 +27,13 @@ void Character::render(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
 	}
 }
 
-void Character::move(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
+void Character::move(Frame *frame) {
 	if (collide.y == 1 && !speed.y) {
 		moveStartTime = SDL_GetTicks64();
 		moveStartPosition = pos;
+		dashsRemaining = DASH_LIMIT;
 	}
 	calculateNextRect();
-	int i = 0;
 	collide = {0, 0};
 	Vector relativeWallPosition, direction = {0, 0};
 
@@ -54,8 +51,11 @@ void Character::move(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
 
 	// std::cout << direction.x << direction.y << std::endl;
 
-	for (i = 0; i < nbWalls; i++) {
-		SDL_Rect wallRect = walls[i].rect;
+	int i = 0;
+	for (Wall wall : *frame->getWalls()) {
+		i++;
+	// for (int i = 0; i < frame->getNumberOfWalls(); i++) {
+		SDL_Rect wallRect = wall.getRect();
 		relativeWallPosition = {0, 0};
 
 		if (pos.x < wallRect.x) {
@@ -89,11 +89,6 @@ void Character::move(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
 					moveStartPosition = pos;
 				}
 				collide.x = -1;
-			}
-
-			if (collide.x && grab) {
-				moveStartTime = SDL_GetTicks64();
-				moveStartPosition = pos;
 			}
 
 			if (relativeWallPosition.y == 1) {
@@ -148,6 +143,12 @@ void Character::move(int nbWalls, Wall *walls, int nbBoosts, Boost *boosts) {
 	// if (collide.y)
 	// 	color = {255, 255, 0, 255};
 
+	if (collide.x && grab) {
+		dashsRemaining = DASH_LIMIT;
+		moveStartTime = SDL_GetTicks64();
+		moveStartPosition = pos;
+	}
+
 	if (((collide.y == -1 && direction.y == 1) || (collide.y == 1 && direction.y == -1) || collide.y == 0) && (!grab || collide.x == 0))
 		pos.y = nextPos.y;
 
@@ -171,7 +172,7 @@ void Character::calculateNextRect() {
 }
 
 void Character::dash(Vector direction) {
-	// if (SDL_GetTicks64() > (Uint64)moveStartTime + 200 && dashsRemaining != 0) {
+	if (dashsRemaining != 0) { // SDL_GetTicks64() > (Uint64)moveStartTime + 200 &&
 		moveStartTime = SDL_GetTicks64();
 		moveStartPosition = pos;
 		speed.x = 50 * direction.x * RATIO;
@@ -179,12 +180,12 @@ void Character::dash(Vector direction) {
 		dashsRemaining -= 1;
 		grab = 0;
 		// std::cout << "dash" << std::endl;
-	// }
+	}
 }
 
-void Character::setup(End start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) {
-	pos.x = start.x, pos.y = start.y;
-	convert_SDL_Rect(&pos.x, &pos.y, &w, &h, GAP, RATIO);
+void Character::scale(const End* start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) {
+	pos.x = start->getX(), pos.y = start->getY();
+	scaleRect(&pos.x, &pos.y, &w, &h, GAP, RATIO);
 	moveStartPosition = {pos.x, pos.y};
 	this->RATIO = RATIO;
 	this->font = font;
