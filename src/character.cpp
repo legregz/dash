@@ -8,9 +8,6 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_timer.h>
-#include <iostream>
-// #include <cstddef>
-// #include <iostream>
 
 Character::Character(const End* start, int GAP[2], double RATIO, TTF_Font *font, SDL_Renderer *renderer) { scale(start, GAP, RATIO, font, renderer); }
 
