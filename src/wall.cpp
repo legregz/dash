@@ -1,5 +1,3 @@
-// #include <SDL2/SDL.h>
-
 #include "../inc/utils.hpp"
 #include "../inc/wall.hpp"
 

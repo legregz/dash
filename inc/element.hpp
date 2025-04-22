@@ -1,9 +1,8 @@
-// elements.h
+// elements.hpp
 #pragma once
 
 #include "types.hpp"
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_rect.h>
 
 class Element {
 protected:

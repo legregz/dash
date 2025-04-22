@@ -1,8 +1,7 @@
-// wall.h
+// wall.hpp
 #pragma once
 
 #include "element.hpp"
-#include <SDL2/SDL.h>
 
 class Wall : public Element {
 private:

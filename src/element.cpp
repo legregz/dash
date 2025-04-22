@@ -1,5 +1,4 @@
 #include "../inc/element.hpp"
-#include "../inc/types.hpp"
 
 Element::Element(int x, int y, int w, int h) : x(x), y(y), w(w), h(h), rect({x, y, w, h}) {}
 

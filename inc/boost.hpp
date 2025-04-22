@@ -1,7 +1,6 @@
-// boost.h
+// boost.hpp
 #pragma once
 
-#include <SDL2/SDL.h>
 #include "element.hpp"
 
 class Boost : public Element {

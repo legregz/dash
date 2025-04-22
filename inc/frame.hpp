@@ -1,8 +1,10 @@
+// frame.hpp
+#pragma once
+
 #include "boost.hpp"
 #include "element.hpp"
 #include "ends.hpp"
 #include "wall.hpp"
-#include <SDL2/SDL_render.h>
 #include <vector>
 
 class Frame {

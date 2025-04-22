@@ -1,8 +1,4 @@
-// #include <SDL2/SDL.h>
-// #include <SDL2/SDL_ttf.h>
-
 #include "../inc/SDL_utils.hpp"
-#include <SDL2/SDL_video.h>
 
 int init_SDL(SDL_Renderer **renderer, SDL_Window **window, TTF_Font **font) {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {

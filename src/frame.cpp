@@ -1,5 +1,3 @@
-#include "../inc/wall.hpp"
-#include <SDL2/SDL_render.h>
 #include "../inc/frame.hpp"
 
 Frame::Frame() {}

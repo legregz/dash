@@ -1,9 +1,7 @@
-// character.h
+// character.hpp
 #pragma once
 
 #include <SDL2/SDL_ttf.h>
-#include "../inc/ends.hpp"
-#include "../inc/types.hpp"
 #include "../inc/frame.hpp"
 
 #define DASH_LIMIT 3;
