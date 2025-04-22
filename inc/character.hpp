@@ -14,9 +14,9 @@ private:
 	Position pos;
 	Position nextPos;
 	Vector speed = {0, 0};
-	int moveStartTime = SDL_GetTicks64(), dashsRemaining = DASH_LIMIT;
+	long moveStartTime = SDL_GetTicks64(), dashAnimationEndTime = 0;
 	Position moveStartPosition;
-	int colorIntensity;
+	int colorIntensity, dashsRemaining = DASH_LIMIT;
 	double RATIO;
 
 	TTF_Font *font = nullptr;

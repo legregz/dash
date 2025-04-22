@@ -15,4 +15,5 @@ void Wall::render(SDL_Renderer* renderer) {
 void Wall::scale(int GAP[2], double RATIO) {
 	scaleRect(&x, &y, &w, &h, GAP, RATIO);
 	rect = {x, y, w, h};
+	// printf("&x : %p\n", &this->x);
 }

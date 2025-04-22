@@ -5,6 +5,7 @@
 // #include "../inc/ends.h"
 // #include "../inc/wall.h"
 #include "../inc/utils.hpp"
+#include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_timer.h>
 #include <iostream>
@@ -24,6 +25,15 @@ void Character::render(Frame *frame) {
 		colorIntensity = 10 - i;
 		SDL_SetRenderDrawColor(renderer, color.r / 10 * colorIntensity, color.g / 10 * colorIntensity, color.b / 10 * colorIntensity, color.a);
 		SDL_RenderFillRect(renderer, &rect[i]);
+	}
+
+	long timeDiff = (dashAnimationEndTime - SDL_GetTicks64());
+	// printf("%ld  %f\n", timeDiff, color.r / 1000.0 * timeDiff);
+	if (timeDiff > 0) {
+		SDL_SetRenderDrawColor(renderer, color.r / 1000.0 * timeDiff, color.g / 1000.0 * timeDiff, color.b / 1000.0 * timeDiff, color.a);
+		int squareRadius = (1000 - timeDiff) / 10;
+		SDL_Rect dashRect = {moveStartPosition.x - rect[0].w / 2 - squareRadius / 2, moveStartPosition.y - rect[0].h / 2 - squareRadius / 2, rect[0].w + squareRadius, rect[0].h + squareRadius};
+		SDL_RenderDrawRect(renderer, &dashRect);
 	}
 }
 
@@ -174,6 +184,7 @@ void Character::calculateNextRect() {
 void Character::dash(Vector direction) {
 	if (dashsRemaining != 0) { // SDL_GetTicks64() > (Uint64)moveStartTime + 200 &&
 		moveStartTime = SDL_GetTicks64();
+		dashAnimationEndTime = SDL_GetTicks64() + 1000;
 		moveStartPosition = pos;
 		speed.x = 50 * direction.x * RATIO;
 		speed.y = 50 * direction.y * RATIO;

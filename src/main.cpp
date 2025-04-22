@@ -1,9 +1,81 @@
-//#include <SDL2/SDL.h>
+// #include <SDL2/SDL.h>
 
 #include "../inc/character.hpp"
 #include "../inc/SDL_utils.hpp"
-#include <cstdio>
-#include <iostream>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_thread.h>
+#include <SDL2/SDL_timer.h>
+
+volatile bool running = 1;
+
+int eventThread(void* c) {
+	Character* character = (Character*)c;
+	SDL_Event event;
+	Vector direction = {0, 0};
+	SDL_Keycode key;
+	short keyD = 0;
+
+	while (running) {
+		while (SDL_PollEvent(&event)) {
+			if (event.type == SDL_QUIT)
+				running = 0;
+			// keys detection
+			if (event.type == SDL_KEYDOWN) {
+				key = event.key.keysym.sym;
+				if (key == SDLK_ESCAPE)
+					running = 0;
+
+				if (key == SDLK_z)
+					character->grab = 1;
+
+				if (key == SDLK_d && keyD == 0)
+					keyD = 1;
+
+				if (key == SDLK_UP)
+					direction.y = -1;
+
+				if (key == SDLK_DOWN)
+					direction.y = 1;
+
+				if (key == SDLK_LEFT) {
+					direction.x = -1;
+					character->walk = -1;
+				}
+
+				if (key == SDLK_RIGHT) {
+					direction.x = 1;
+					character->walk = 1;
+				}
+			}
+			if (event.type == SDL_KEYUP) {
+				SDL_Keycode key = event.key.keysym.sym;
+
+				if (key == SDLK_z)
+					character->grab = 0;
+
+				if (key == SDLK_d)
+					keyD = 0;
+
+				if (key == SDLK_UP || key == SDLK_DOWN)
+					direction.y = 0;
+
+				if ((key == SDLK_LEFT && direction.x == -1) || (key == SDLK_RIGHT && direction.x == 1))
+				{
+					direction.x = 0;
+					character->walk = 0;
+				}
+			}
+		}
+
+		if (keyD == 1 && (direction.x != 0 || direction.y != 0)) {
+			character->dash(direction);
+			keyD = 2;
+		}
+
+		SDL_Delay(10);
+	}
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -22,8 +94,7 @@ int main(int argc, char *argv[])
 		return SDL_status;
 	}
 
-	int width = 0, height = 0, GAP[2] = {0, 0}, keyD = 0;
-	Vector direction = {0, 0};
+	int width = 0, height = 0, GAP[2] = {0, 0};
 	double ratio = 0.0, RATIO = 0.0;
 
 	SDL_GetWindowSize(window, &width, &height);
@@ -54,7 +125,11 @@ int main(int argc, char *argv[])
 	Character character = Character(frame.getStart(), GAP, RATIO, font, renderer);
 
 	frame.scale(GAP, RATIO);
-
+	SDL_Texture* mapTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
+	frame.setup(renderer, mapTexture);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_RenderClear(renderer);
+	frame.render();
 	// char text[1];
 
 	// for (int i = 0; i < 10; i++)
@@ -65,77 +140,25 @@ int main(int argc, char *argv[])
 	// }
 
 	// SDL_FreeSurface(fpsTextSurface);
-	SDL_Event event;
-	long startTime;
-	int running = 1;//, textWidth = 0, textHeight = 0, fps = 60, fpsRefresh = 0;
+	long startTime, fpsDelay;
+	SDL_Thread* thread = SDL_CreateThread(eventThread, "EventThread", &character);
+	//, textWidth = 0, textHeight = 0, fps = 60, fpsRefresh = 0;
 
 	// main loop
 	while (running) {
 		startTime = SDL_GetTicks64();
 
-		while (SDL_PollEvent(&event)) {
-
-			if (event.type == SDL_QUIT)
-				running = 0;
-
-			// keys detection
-			if (event.type == SDL_KEYDOWN) {
-				SDL_Keycode key = event.key.keysym.sym;
-				if (key == SDLK_ESCAPE)
-					running = 0;
-
-				if (key == SDLK_z)
-					character.grab = 1;
-
-				if (key == SDLK_d && keyD == 0)
-					keyD = 1;
-
-				if (key == SDLK_UP)
-					direction.y = -1;
-
-				if (key == SDLK_DOWN)
-					direction.y = 1;
-
-				if (key == SDLK_LEFT) {
-					direction.x = -1;
-					character.walk = -1;
-				}
-
-				if (key == SDLK_RIGHT) {
-					direction.x = 1;
-					character.walk = 1;
-				}
-			}
-			if (event.type == SDL_KEYUP) {
-				SDL_Keycode key = event.key.keysym.sym;
-
-				if (key == SDLK_z)
-					character.grab = 0;
-
-				if (key == SDLK_d)
-					keyD = 0;
-
-				if (key == SDLK_UP || key == SDLK_DOWN)
-					direction.y = 0;
-
-				if ((key == SDLK_LEFT && direction.x == -1) || (key == SDLK_RIGHT && direction.x == 1))
-				{
-					direction.x = 0;
-					character.walk = 0;
-				}
-			}
-		}
-
-		if (keyD == 1 && (direction.x != 0 || direction.y != 0)) {
-			character.dash(direction);
-			keyD = 2;
-		}
-
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		frame.render(renderer);
+		// long st;
+		// st = SDL_GetTicks64();
+		frame.render();
+		// printf("render : %ld\n", SDL_GetTicks64() - st);
 
+		// st = SDL_GetTicks64();
+		SDL_RenderCopy(renderer, mapTexture, NULL, NULL);
+		// printf("copy : %ld\n", SDL_GetTicks64() - st);
 		character.render(&frame);
 
 		// if (SDL_GetTicks64() > fpsRefresh)
@@ -150,15 +173,15 @@ int main(int argc, char *argv[])
 
 		SDL_RenderPresent(renderer);
 
-		SDL_Delay(16 - (SDL_GetTicks64() - startTime));
-		//printf("%ld\n", 1000 / (SDL_GetTicks64() - startTime));
-					   // fpsRefresh--;
-					   // fps = 1000 / (SDL_GetTicks64() - startTime);
+		fpsDelay = 16 - (SDL_GetTicks64() - startTime);
+		SDL_Delay(fpsDelay > 0 ? fpsDelay : 0);
+		// printf("%ld\n", fpsDelay);
 	}
 
 	// for (int i = 0; i < 10; i++)
 	// 	SDL_DestroyTexture(fpsTextTextures[i]);
-
+	SDL_WaitThread(thread, NULL);
+	SDL_DestroyTexture(mapTexture);
 	quit_SDL(renderer, window, font);
 	return 0;
 }

@@ -10,8 +10,9 @@ private:
 	std::vector<Wall> walls;
 	std::vector<Boost> boosts;
 	std::vector<Element> others;
-	End start;
-	End end;
+	End start, end;
+	SDL_Renderer* renderer = nullptr;
+	SDL_Texture* texture = nullptr;
 
 public:
 	Frame();
@@ -34,6 +35,7 @@ public:
 	void setStart(End start);
 	void setEnd(End end);
 
-	void render(SDL_Renderer* renderer);
+	void render();
+	void setup(SDL_Renderer* renderer, SDL_Texture* texture);
 	void scale(int gap[2], double ratio);
 };

@@ -1,4 +1,5 @@
 #include "../inc/wall.hpp"
+#include <SDL2/SDL_render.h>
 #include "../inc/frame.hpp"
 
 Frame::Frame() {}
@@ -14,8 +15,6 @@ const std::vector<Wall>* Frame::getWalls() const {
 Boost Frame::getBoostAt(int index) const {
 	return boosts.at(index);
 }
-
-
 
 // const Element& Frame::getOtherAt(int index) const {
 // 	return others.at(index);
@@ -53,7 +52,8 @@ void Frame::setEnd(End end) {
 	this->end = end;
 }
 
-void Frame::render(SDL_Renderer* renderer) {
+void Frame::render() {
+	SDL_SetRenderTarget(renderer, texture);
 	for (Wall wall : walls) {
 		wall.render(renderer);
 	}
@@ -65,13 +65,19 @@ void Frame::render(SDL_Renderer* renderer) {
 	// }
 	start.render(renderer);
 	end.render(renderer);
+	SDL_SetRenderTarget(renderer, NULL);
+}
+
+void Frame::setup(SDL_Renderer* renderer, SDL_Texture* texture) {
+	this->renderer = renderer;
+	this->texture = texture;
 }
 
 void Frame::scale(int gap[2], double ratio) {
-	for (Wall wall : walls) {
+	for (Wall& wall : walls) {
 		wall.scale(gap, ratio);
 	}
-	for (Boost boost : boosts) {
+	for (Boost& boost : boosts) {
 		boost.scale(gap, ratio);
 	}
 	// for (Element& elt : others) {
